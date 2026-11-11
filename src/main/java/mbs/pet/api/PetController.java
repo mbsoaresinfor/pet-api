@@ -21,15 +21,7 @@ public class PetController {
 
 	@PostMapping("/salvar")
 	public Integer salvar(@RequestBody Pet pet) throws PetValidationException {
-		if(pet.getIdade() == null || pet.getIdade() < 0 ) {
-			System.out.println("Pet não cadastrado");
-			throw new PetValidationException("Idade inválida para o pet");
-		}
-		
-		if(pet.getNome() == null || pet.getNome().isEmpty()) {
-			System.out.println("Pet não cadastrado");
-			throw new PetValidationException("Nome inválida para o pet");
-		}
+		validacaoPet(pet);
 		pet.setId(id);
 		lista.add(pet);
 		id++;
@@ -44,16 +36,17 @@ public class PetController {
 	}
 
 	@PutMapping("/atualizar/{id}")
-	public void atualizar(@RequestBody Pet pet, @PathVariable Integer id) {
+	public void atualizar(@RequestBody Pet pet, @PathVariable Integer id) throws PetValidationException {
+		lista.stream().filter(obj -> obj.getId().equals(id)).findFirst()
+				.orElseThrow(() -> new IllegalArgumentException("Pet não encontada com id " + id));
+		validacaoPet(pet);
 		var resultado = lista.removeIf(obj -> obj.getId().equals(id));
-		if (resultado) {
+		
+		if (resultado) {			
 			pet.setId(id);
 			lista.add(pet);
 			System.out.println("Pet atualizado com sucesso");
-		} else {			
-			System.out.println("Pet não atualizado");
-			throw new IllegalArgumentException("Pet não encontada com id " + id);
-		}
+		} 
 	}
 
 	@DeleteMapping("/deletar/{id}")
@@ -66,5 +59,18 @@ public class PetController {
 			throw new IllegalArgumentException("Pet não encontada com id " + id);
 		}
 	}
+
+	private void validacaoPet(Pet pet) throws PetValidationException {
+		if(pet.getIdade() == null || pet.getIdade() < 0 ) {			
+			throw new PetValidationException("Idade inválida para o pet");
+		}
+		
+		if(pet.getNome() == null || pet.getNome().isEmpty()) {			
+			throw new PetValidationException("Nome inválida para o pet");
+		}
+	}
+
+
+	
 
 }
